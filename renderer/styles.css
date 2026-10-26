@@ -1,0 +1,505 @@
+/* ===================================================================
+   ORBIT LAUNCHER — styles.css
+   =================================================================== */
+
+/* ── CSS custom properties (overridden by settings) ──────────────── */
+:root {
+  --nebula-opacity: 0.15;                    /* 12–18% — edit here to tune brightness */
+  --icon-size:      clamp(58px, 7.5vmin, 96px); /* X-Large default; overridden by settings */
+}
+
+/* ── Reset ───────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #03000a;
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── Space background ────────────────────────────────────────────── */
+
+/* Solid base layer — same colour as body so there's never a flash */
+#space-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: #03000a;
+  overflow: hidden;
+}
+
+/* Shared nebula styles */
+.nebula {
+  position: absolute;
+  width: 70vw;
+  height: 70vw;           /* square + border-radius:50% = perfect circle */
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: var(--nebula-opacity);
+  will-change: transform;
+}
+
+/* Purple cloud — anchored top-left, drifts down-right */
+.nebula-purple {
+  background: #8a2be2;
+  top: -18vw;
+  left: -12vw;
+  animation: nebulaPurple 48s ease-in-out infinite alternate;
+}
+
+/* Blue cloud — anchored bottom-right, drifts up-left */
+.nebula-blue {
+  background: #3a2bd9;
+  bottom: -18vw;
+  right: -12vw;
+  animation: nebulaBlue 44s ease-in-out infinite alternate;
+}
+
+@keyframes nebulaPurple {
+  0%   { transform: translate(-6vw, -2vh) scale(1);    }
+  100% { transform: translate( 6vw,  3vh) scale(1.10); }
+}
+
+@keyframes nebulaBlue {
+  0%   { transform: translate(-7vw,  2vh) scale(1);    }
+  100% { transform: translate( 5vw, -2vh) scale(1.10); }
+}
+
+/* Stars canvas — transparent so nebula + background show through */
+#space-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent;
+}
+
+/* ── App overlay ─────────────────────────────────────────────────── */
+#app {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  animation: appFadeIn 0.6s ease both;
+}
+
+@keyframes appFadeIn {
+  from { opacity: 0; transform: scale(0.99); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
+/* ── Tile container & page stack ─────────────────────────────────── */
+#tile-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+#pages-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  will-change: transform;
+  /* height: auto — grows naturally as pages are added */
+}
+
+/* ── Individual page — grid columns/rows injected by renderer.js ──── */
+.page {
+  width: 100%;
+  height: 100vh;
+  display: grid;
+  /* grid-template-columns + grid-template-rows set from ROWS/COLS constants */
+  gap: clamp(14px, 1.8vw, 28px);
+  padding: clamp(28px, 3.5vh, 56px) clamp(36px, 3.5vw, 60px);
+  box-sizing: border-box;
+}
+
+/* ── Tile: no box — icon floats directly on the space background ──── */
+.tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  overflow: visible;      /* let drop-shadow glow spill past the hit area */
+
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Hover: icon lifts with a soft purple/white glow — absolutely no box */
+.tile:hover,
+.tile:focus-visible {
+  transform: translateY(-8px) scale(1.08);
+}
+
+.tile:hover .tile-icon-wrap,
+.tile:focus-visible .tile-icon-wrap {
+  filter: drop-shadow(0 0 22px rgba(150, 100, 255, 0.82))
+          drop-shadow(0 0  8px rgba(210, 190, 255, 0.45));
+}
+
+/* Not-found: icon at 40% opacity; badge shown via JS inside the wrap */
+.tile.not-found .tile-icon-wrap {
+  opacity: 0.40;
+}
+
+/* Empty placeholder — invisible but holds its grid slot */
+.tile.tile-empty {
+  pointer-events: none;
+  visibility: hidden;
+}
+
+/* ── Tile icon ───────────────────────────────────────────────────── */
+.tile-icon-wrap {
+  position: relative;          /* for not-found badge */
+  width:  var(--icon-size);
+  height: var(--icon-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: filter 0.20s ease;
+}
+
+.tile-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 18%;           /* iOS-style rounded corners */
+  image-rendering: auto;
+}
+
+/* Letter fallback: solid muted rounded square — no glass */
+.tile-letter {
+  width: 100%;
+  height: 100%;
+  border-radius: 22%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--icon-size) * 0.44);
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* Not-found warning badge (rendered by JS) */
+.tile-not-found-badge {
+  position: absolute;
+  bottom: -4px;
+  right:  -4px;
+  width:  18px;
+  height: 18px;
+  background: #f59e0b;
+  border-radius: 50%;
+  border: 2px solid #03000a;
+  color: #000;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 14px;
+  text-align: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Tile name — always visible under the icon ───────────────────── */
+.tile-name {
+  font-size: clamp(11px, 1.0vw, 14px);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.80);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 95%;
+  letter-spacing: 0.01em;
+  margin-top: 2px;
+}
+
+/* ── Not-found hint — replaced by title tooltip + badge; hidden ──── */
+.tile-hint {
+  display: none;
+}
+
+/* ── Page dots ───────────────────────────────────────────────────── */
+#page-dots {
+  position: fixed;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.page-dot:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+.page-dot.active {
+  background: rgba(255, 255, 255, 0.90);
+  transform: scale(1.5);
+}
+
+/* ── Settings gear ───────────────────────────────────────────────── */
+#settings-btn {
+  position: fixed;
+  bottom: 22px;
+  right: 22px;
+  z-index: 20;
+
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.38);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;            /* hide click ring; keyboard ring via :focus-visible below */
+
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+#settings-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.90);
+  transform: rotate(30deg);
+}
+
+#settings-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.55);
+  outline-offset: 3px;
+}
+
+/* ── Toast notification ──────────────────────────────────────────── */
+#toast {
+  position: fixed;
+  bottom: 76px;
+  right: 22px;
+  z-index: 30;
+
+  background: rgba(20, 20, 40, 0.90);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  pointer-events: none;
+  white-space: nowrap;
+
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+#toast.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Reduced-motion overrides ─────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .nebula {
+    animation-play-state: paused !important;
+  }
+
+  .tile,
+  .tile-name,
+  #pages-wrapper,
+  #settings-btn {
+    transition-duration: 0.01ms !important;
+    animation-duration:  0.01ms !important;
+  }
+}
+
+/* ====================================================================
+   SETTINGS PANEL
+   ==================================================================== */
+
+/* Full-screen scrim */
+#settings-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(0, 0, 0, 0.50);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+#settings-panel.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Card */
+#settings-card {
+  width: 380px;
+  background: rgba(16, 10, 26, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 18px;
+  padding: 26px 26px 22px;
+
+  transform: scale(0.94) translateY(10px);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+#settings-panel.open #settings-card {
+  transform: scale(1) translateY(0);
+}
+
+/* Header row */
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.settings-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+#settings-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.65);
+  cursor: pointer;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+#settings-close:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+/* Divider */
+.settings-divider {
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  margin: 0 0 22px;
+}
+
+/* Section */
+.settings-section {
+  margin-bottom: 22px;
+}
+
+.settings-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.40);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+/* Button group */
+.settings-btn-group {
+  display: flex;
+  gap: 10px;
+}
+
+.setting-option {
+  flex: 1;
+  padding: 11px 0;
+  border-radius: 9px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  color: rgba(255, 255, 255, 0.60);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background  0.15s ease,
+    border-color 0.15s ease,
+    color        0.15s ease;
+}
+
+.setting-option:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.setting-option.active {
+  background: #5b21b6;
+  border-color: #7c3aed;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Reset button */
+#reset-defaults {
+  width: 100%;
+  padding: 15px;
+  border-radius: 10px;
+  background: rgba(90, 12, 18, 0.40);
+  border: 1px solid rgba(180, 35, 50, 0.45);
+  color: rgba(255, 100, 105, 0.90);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.01em;
+  margin-top: 6px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+#reset-defaults:hover {
+  background: rgba(110, 18, 26, 0.60);
+  border-color: rgba(210, 50, 65, 0.65);
+}

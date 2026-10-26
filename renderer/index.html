@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--
+    CSP is also enforced by the main process via session.webRequest.onHeadersReceived.
+    This meta tag acts as a second layer.
+  -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none';">
+  <title>Orbit Launcher</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Layer 0a: CSS nebula clouds (purple top-left, blue bottom-right) -->
+  <div id="space-bg" aria-hidden="true">
+    <div class="nebula nebula-purple"></div>
+    <div class="nebula nebula-blue"></div>
+  </div>
+
+  <!-- Layer 0b: stars canvas (transparent — nebula + #03000a show through) -->
+  <canvas id="space-canvas" aria-hidden="true"></canvas>
+
+  <!-- Layer 1: tile grid + UI chrome -->
+  <div id="app" role="main">
+
+    <!-- Scrollable page stack -->
+    <div id="tile-container">
+      <div id="pages-wrapper"></div>
+    </div>
+
+    <!-- Vertical page indicator dots (right edge) -->
+    <nav id="page-dots" aria-label="Pages"></nav>
+
+    <!-- Settings / edit-mode button (wired up in Step 5) -->
+    <button id="settings-btn" title="Settings" aria-label="Open settings">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round"
+           width="20" height="20" aria-hidden="true">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06
+                 a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09
+                 A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83
+                 l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09
+                 A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83
+                 l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09
+                 a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83
+                 l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09
+                 a1.65 1.65 0 0 0-1.51 1z"/>
+      </svg>
+    </button>
+
+    <!-- Toast notification -->
+    <div id="toast" role="status" aria-live="polite"></div>
+
+    <!-- Settings panel -->
+    <div id="settings-panel" role="dialog" aria-modal="true" aria-label="Settings" aria-hidden="true">
+      <div id="settings-card">
+
+        <div class="settings-header">
+          <span class="settings-title">SETTINGS</span>
+          <button id="settings-close" aria-label="Close settings">✕</button>
+        </div>
+
+        <hr class="settings-divider">
+
+        <!-- Tile size -->
+        <div class="settings-section">
+          <div class="settings-label">Tile Size</div>
+          <div class="settings-btn-group" id="size-group" role="group" aria-label="Tile size">
+            <button class="setting-option" data-value="medium">Medium</button>
+            <button class="setting-option" data-value="large">Large</button>
+            <button class="setting-option active" data-value="xlarge">X-Large</button>
+          </div>
+        </div>
+
+        <!-- Background speed -->
+        <div class="settings-section">
+          <div class="settings-label">Background Speed</div>
+          <div class="settings-btn-group" id="speed-group" role="group" aria-label="Background speed">
+            <button class="setting-option" data-value="slow">Slow</button>
+            <button class="setting-option" data-value="normal">Normal</button>
+            <button class="setting-option active" data-value="fast">Fast</button>
+          </div>
+        </div>
+
+        <button id="reset-defaults">Reset to Defaults</button>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
